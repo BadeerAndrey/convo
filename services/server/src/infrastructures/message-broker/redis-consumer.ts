@@ -1,16 +1,14 @@
 import { createClient, RedisClientType } from 'redis';
-import {
-    MessageConsumer,
-} from './consumer';
+import { MessageConsumer } from './consumer';
 
-export class RedisConsumer implements MessageConsumer {
+export class RedisConsumer<T> implements MessageConsumer<T> {
     private client: RedisClientType;
-    private consumerName: string;
-    private stopped = false;
+    private subscribed = false;
+    private readonly topic:string;
 
-    constructor(redisUrl: string, consumerName = `consumer-${Date.now()}`) {
+    constructor(redisUrl: string, topic:string) {
         this.client = createClient({ url: redisUrl });
-        this.consumerName = consumerName;
+        this.topic = topic;
     }
 
     private async ensureConnected() {
@@ -20,46 +18,34 @@ export class RedisConsumer implements MessageConsumer {
     }
 
     async consume(
-        topic: string,
-        handler: (message: string) => Promise<void>,
+        handler: (message: T) => Promise<void>,
     ): Promise<void> {
         await this.ensureConnected();
 
-        const groupId = 'default-group';
-
-        try {
-            await this.client.xGroupCreate(topic, groupId, '0', { MKSTREAM: true }).catch(() => {});
-        } catch {
+        if (this.subscribed) {
+            console.warn(`already subscribed to a topic.`);
+            return;
         }
 
-        this.stopped = false;
+        this.subscribed = true;
 
-        while (!this.stopped) {
+        await this.client.subscribe(this.topic, async (rawMessage: string) => {
             try {
-                const result = await this.client.xReadGroup(
-                    groupId,
-                    this.consumerName,
-                    [{ key: topic, id: '>' }],
-                    { COUNT: 1, BLOCK: 5000 }
-                );
-
-                if (!result || this.stopped) continue;
-
-                for (const stream of result) {
-                    for (const msg of stream.messages) {
-                        const fields = msg.message;
-                        await handler(fields.message);
-                        await this.client.xAck(topic, groupId, msg.id);
-                    }
-                }
+                const parsed = JSON.parse(rawMessage) as T;
+                await handler(parsed);
             } catch (err) {
-                if (!this.stopped) console.error('Consume error:', err);
+                console.error('Error handling message:', err);
             }
-        }
+        });
+
     }
 
     async stop(): Promise<void> {
-        this.stopped = true;
+        if (this.subscribed) {
+            await this.client.unsubscribe();
+            this.subscribed = false;
+        }
+
         if (this.client.isOpen) {
             await this.client.quit();
         }
