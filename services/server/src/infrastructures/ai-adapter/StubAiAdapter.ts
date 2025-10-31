@@ -1,7 +1,7 @@
-import {AiAdapter} from "./AiAdapter";
+import {AiAdapter, GenerateResult} from "./AiAdapter";
 
 export class StubAiAdapter implements AiAdapter {
-    async generate(prompt:string): Promise<string[]> {
-        return [prompt]
+    async generate(prompt:string): Promise<GenerateResult> {
+        return {ok:true,data:[prompt]}
     }
 }

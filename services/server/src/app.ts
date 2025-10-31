@@ -14,6 +14,7 @@ export default async function (fastify: FastifyInstance, opts: any) {
             properties: {
                 DATABASE_URL: { type: 'string' },
                 OPENAI_API_KEY: { type: 'string' },
+                IS_TEST: { type: 'boolean' },
                 // add more if needed
             },
         },

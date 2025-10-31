@@ -13,7 +13,9 @@ declare module 'fastify' {
         config: {
             REDIS_URL: string;
             OPENAI_API_KEY:string;
+            IS_TEST:boolean;
         };
+
         questionMessageProducer: MessageProducer<AgentQuestions[]>;
         questionMessageConsumer: MessageConsumer<AgentQuestions[]>;
         questionStreamClient: StreamClient<AgentQuestions>;

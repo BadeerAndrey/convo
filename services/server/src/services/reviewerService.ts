@@ -37,8 +37,13 @@ export class ReviewerService {
         }
 
         const userPrompt = `Items: ${dto.items.join(", ")}\n\nGenerate 2–4 clarifying questions.`;
-        const items = await this.aiAdapter.generate(userPrompt);
-        const replies: AgentQuestions[] = items
+        const res = await this.aiAdapter.generate(userPrompt);
+        console.log(res);
+        if (!res.ok){
+            return {ok:false, message: res.error};
+        }
+
+        const replies: AgentQuestions[] = res.data
             .map(q => ({
                 createdAt: Date.now(),
                 text: q,
