@@ -1,0 +1,7 @@
+.status {
+    margin: 1rem 0;
+    font-weight: 600;
+    min-height: 1.5em;
+}
+.status.sending      { color: #0070f3; }
+.status.acknowledged { color: #17b978; }

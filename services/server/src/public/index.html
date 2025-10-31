@@ -25,6 +25,9 @@
     socket.on('connect', () => {
         console.log('Connected to server');
     });
+    socket.on('ack', () => {
+        alert('ack')
+    });
 
     socket.on('agent:questions', (message) => {
         const p = document.createElement('p');

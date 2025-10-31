@@ -1,5 +1,5 @@
 import {AgentQuestions} from "../packages/shared";
-import {MessageConsumer} from "../infrastructures/message-broker/consumer";
+import {MessageConsumer} from "../infrastructures/message-broker/MessageConsumer";
 
 export class ParticipantService {
     private consumer: MessageConsumer<AgentQuestions[]>;

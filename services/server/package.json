@@ -28,6 +28,7 @@
     "fastify-cli": "^7.4.0",
     "fastify-plugin": "^5.0.0",
     "fastify-socket.io": "^5.1.0",
+    "openai": "^6.7.0",
     "redis": "^5.9.0",
     "socket.io": "^4.8.1"
   },

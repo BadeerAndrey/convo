@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { MessageConsumer } from './consumer';
+import { MessageConsumer } from './MessageConsumer';
 
 export class RedisConsumer<T> implements MessageConsumer<T> {
     private client: RedisClientType;

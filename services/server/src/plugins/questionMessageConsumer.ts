@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin';
-import {RedisConsumer} from "../infrastructures/message-broker/redis-consumer";
+import {RedisConsumer} from "../infrastructures/message-broker/RedisConsumer";
 import {AgentQuestions} from "../packages/shared";
 
 export default fp(async (fastify) => {

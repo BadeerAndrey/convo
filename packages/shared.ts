@@ -9,7 +9,11 @@ export type AgentQuestions = {
 };
 
 export interface ClientToServerEvents {
-    "followup:create": (payload: FollowUpPayload) => void;
+    "followup:create": (
+        payload: FollowUpPayload,
+        ack: (response: { ok: boolean; message?: string }) => void
+    ) => void;
+    "agent:questions:replay": (since: string) => void;
 }
 
 export interface ServerToClientEvents {

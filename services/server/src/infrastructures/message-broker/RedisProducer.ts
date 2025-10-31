@@ -1,28 +1,31 @@
 import { createClient, RedisClientType } from 'redis';
-import { MessageProducer } from './producer';
+import { MessageProducer } from './MessageProducer';
 
 class RedisProducer<T> implements MessageProducer<T> {
     private client: RedisClientType;
     private readonly topic: string;
 
-    private constructor(client: RedisClientType, topic: string) {
-        this.client = client;
+    public constructor(redisUrl: string, topic: string) {
+        this.client =  createClient({ url: redisUrl });
         this.topic = topic;
     }
 
-    static async create<T>(redisUrl: string, topic: string): Promise<RedisProducer<T>> {
-        const client:RedisClientType = createClient({ url: redisUrl });
-        await client.connect();
-        return new RedisProducer<T>(client, topic);
+    private async ensureConnected(): Promise<void> {
+        if (!this.client.isOpen) {
+            await this.client.connect();
+        }
     }
 
     async send( messages: T, ): Promise<void> {
         console.log(`Redis producer Sending messages`);
+        await this.ensureConnected();
         await this.client.publish(this.topic,JSON.stringify(messages));
     }
 
     async disconnect(): Promise<void> {
-        await this.client.quit();
+        if (this.client.isOpen) {
+            await this.client.quit();
+        }
     }
 }
 
