@@ -9,6 +9,7 @@ const ws: FastifyPluginAsync = async (fastify): Promise<void> => {
     const reviewerService:ReviewerService = new ReviewerService(
         fastify.questionMessageProducer,
         fastify.questionStreamClient,
+        fastify.followupStreamClient,
         fastify.aiAdapter,
         fastify.rateLimiter,
         fastify.deduplicator

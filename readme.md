@@ -15,6 +15,7 @@ docker compose up -d
 - Start both frontend and backend
 ```shell
 pnpm install
+pnpm --filter shared build
 pnpm dev
 ```
 
