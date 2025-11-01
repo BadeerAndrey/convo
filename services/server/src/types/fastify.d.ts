@@ -1,7 +1,7 @@
 import '@fastify/env';
 import {MessageProducer} from "../infrastructures/message-broker/MessageProducer";
 import type { Server } from 'socket.io';
-import {AgentQuestions, ClientToServerEvents, ServerToClientEvents} from "shared";
+import {AgentQuestions, ClientToServerEvents, FollowUpPayload, ServerToClientEvents} from "shared";
 import {MessageConsumer} from "../infrastructures/message-broker/MessageConsumer";
 import {StreamClient} from "../infrastructures/stream-client/StreamClient";
 import {AiAdapter} from "../infrastructures/ai-adapter/AiAdapter";
@@ -21,6 +21,7 @@ declare module 'fastify' {
         questionMessageProducer: MessageProducer<AgentQuestions[]>;
         questionMessageConsumer: MessageConsumer<AgentQuestions[]>;
         questionStreamClient: StreamClient<AgentQuestions>;
+        followupStreamClient:StreamClient<FollowUpPayload>;
         aiAdapter: AiAdapter;
         deduplicator: Deduplicator;
         rateLimiter: RateLimiter;

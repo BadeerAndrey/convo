@@ -1,12 +1,12 @@
 import fp from 'fastify-plugin';
 import {RedisStreamClient} from "../infrastructures/stream-client/RedisStreamClient";
-import {AgentQuestions} from "shared";
+import {FollowUpPayload} from "shared";
 
 export default fp(async (fastify) => {
     const { REDIS_URL } = fastify.config;   // <-- from .env
-    const questionStreamClient =new RedisStreamClient<AgentQuestions>(REDIS_URL,"questions:stream");
-    fastify.decorate('questionStreamClient', questionStreamClient);
+    const questionStreamClient =new RedisStreamClient<FollowUpPayload>(REDIS_URL,"followups:stream");
+    fastify.decorate('followupStreamClient', questionStreamClient);
     fastify.addHook('onClose', async (instance) => {
-        await instance.questionStreamClient.disconnect();
+        await instance.followupStreamClient.disconnect();
     });
 });

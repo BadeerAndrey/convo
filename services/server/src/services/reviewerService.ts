@@ -7,20 +7,23 @@ import {Deduplicator} from "../infrastructures/gard/Deduplicator";
 
 export class ReviewerService {
     private producer: MessageProducer<AgentQuestions[]>;
-    private streamClient: StreamClient<AgentQuestions>;
+    private questionsStreamClient: StreamClient<AgentQuestions>;
+    private followupStreamClient: StreamClient<FollowUpPayload>;
     private aiAdapter: AiAdapter;
     private limiter: RateLimiter;
     private deduplicator: Deduplicator;
 
     constructor(
         producer: MessageProducer<AgentQuestions[]>,
-        streamClient: StreamClient<AgentQuestions>,
+        questionsStreamClient: StreamClient<AgentQuestions>,
+        followupStreamClient: StreamClient<FollowUpPayload>,
         aiAdapter: AiAdapter,
         limiter: RateLimiter,
         deduplicator: Deduplicator
     ) {
         this.producer = producer;
-        this.streamClient = streamClient;
+        this.questionsStreamClient = questionsStreamClient;
+        this.followupStreamClient = followupStreamClient;
         this.aiAdapter = aiAdapter;
         this.limiter = limiter;
         this.deduplicator = deduplicator;
@@ -29,7 +32,13 @@ export class ReviewerService {
     async followUp(dto: FollowUpPayload) {
 
         try {
-            if (!dto || !dto.items || !dto.items.length || dto.items.find(x=>!x)) {
+            if (!dto
+                || !dto.items
+                || !dto.items.length
+                || dto.items.length > 8
+                || dto.items.find(x=>!x || x.length === 0)
+                || dto.items.reduce((sum, x) => sum + x.length, 0) > 300
+            ) {
                 return {ok: false, message: "invalid payload"};
             }
 
@@ -40,6 +49,7 @@ export class ReviewerService {
             if (!await this.deduplicator.isUnique(dto.items)) {
                 return {ok: false, message: "found duplicate request"};
             }
+            await this.followupStreamClient.add(dto);
 
             const userPrompt = `Items: ${dto.items.join(", ")}\n\nGenerate 2–4 clarifying questions.`;
             const res = await this.aiAdapter.generate(userPrompt);
@@ -55,7 +65,7 @@ export class ReviewerService {
                 }));
 
             for (const reply of replies) {
-                reply.streamId = await this.streamClient.add(reply);
+                reply.streamId = await this.questionsStreamClient.add(reply);
             }
             await this.producer.send(replies);
             return {ok: true};
