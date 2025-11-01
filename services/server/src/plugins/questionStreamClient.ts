@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import {RedisStreamClient} from "../infrastructures/stream-client/RedisStreamClient";
-import {AgentQuestions} from "../../../../packages/shared/src";
+import {AgentQuestions} from "shared";
 
 export default fp(async (fastify) => {
     const { REDIS_URL } = fastify.config;   // <-- from .env

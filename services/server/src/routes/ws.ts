@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify'
 import {ReviewerService} from "../services/reviewerService";
-import {ClientToServerEvents, ServerToClientEvents} from "../../../../packages/shared/src";
+import {ClientToServerEvents, ServerToClientEvents} from "shared";
 import {Socket } from 'socket.io';
 import {ParticipantService} from "../services/participantService";
 import {AgentService} from "../services/agentService";
@@ -28,10 +28,6 @@ const ws: FastifyPluginAsync = async (fastify): Promise<void> => {
             for(const question of questions){
                socket.emit('agent:questions',question);
             }
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Reviewer disconnected:', socket.id);
         });
     });
 

@@ -1,0 +1,164 @@
+@startuml
+' ==============================================================
+' 3-Layer Architecture: Routers → Services → Infrastructures
+'   - routers/ws is isolated in its own frame
+'   - All flows (WS, Pub/Sub, Streams, Replay, Rate-limit, OpenAI)
+' ==============================================================
+
+skinparam backgroundColor #FAFAFA
+skinparam shadowing false
+skinparam nodesep 80
+skinparam ranksep 90
+
+' ---------- Styling ----------
+skinparam rectangle {
+  BackgroundColor #E3F2FD
+  BorderColor #1E88E5
+  FontColor #0D47A1
+  RoundCorner 8
+}
+skinparam cloud {
+  BackgroundColor #FFF3E0
+  BorderColor #FB8C00
+}
+skinparam database {
+  BackgroundColor #E8F5E9
+  BorderColor #43A047
+}
+skinparam actor {
+  BackgroundColor #FFEBEE
+  BorderColor #E53935
+}
+skinparam frame {
+  BackgroundColor #F5F5F5
+  BorderColor #90A4AE
+  FontStyle bold
+  FontSize 13
+}
+
+' ==============================================================
+' Actors & Front-ends
+' ==============================================================
+actor "Reviewer" as reviewer #FFEBEE
+actor "Participant" as participant #FFEBEE
+
+rectangle "Reviewer App\[](http://localhost:5173)" as fe_reviewer {
+  [UI: Mic + Text] as fe_reviewer_ui #white
+  [Main Container] as fe_reviewer_container #white
+  [Socket.io Client] as fe_reviewer_socket #white
+}
+rectangle "Participant App\[](http://localhost:5174)" as fe_participant {
+  [Chat Feed] as fe_participant_chat_feed #white
+  [Speech Synthesis] as fe_participant_speech #white
+  [Socket.io Client\n+ lastStreamId] as fe_participant_socket #white
+  [Main Container] as fe_participant_container #white
+}
+
+' ==============================================================
+' Backend – 3 Layers
+' ==============================================================
+rectangle "Backend Server (Node.js + Fastify)\(http://localhost:3000)" as server {
+
+  ' ------------------- Routers -------------------
+  frame "Routers" as routers_frame {
+    [Socket.io Handler] as ws_handler
+  }
+
+  ' ------------------- Services -------------------
+  frame "Services" as services_frame {
+    rectangle "Reviewer" as reviewer_service
+    rectangle "Participant" as participant_service
+    rectangle "Agent" as agent_service
+  }
+
+  ' ------------------- Infrastructures -------------------
+  frame "Infrastructures" as infra_frame {
+    [AI Adapter] as ai_adapter
+    [Rate Limiter] as rate_limiter
+    [Deduplication] as deduplicator
+    [Stream Client] as stream_client
+    [Message Producer] as producer
+    [Message Consumer] as consumer
+  }
+}
+
+' ==============================================================
+' External Systems
+' ==============================================================
+cloud "Redis\n(redis://localhost:6379)" as redis {
+  database "Streams" as streams {
+    frame "questions:stream" as stream_questions
+  }
+  database "Pub/Sub" as pubsub {
+    [Channel: agent_message] as agent_message
+  }
+  database "Rate Limit & Dedup" as counters {
+    [hashes: rate:*:count] #white
+    [sets: dedup:*:items] #white
+  }
+}
+cloud "OpenAI API\n(Chat Completions)" as openai_api #FFF3E0
+
+' ==============================================================
+' Flow – Reviewer → OpenAI → Broadcast
+' ==============================================================
+reviewer -down-> fe_reviewer_ui : 1. Visit + Speak
+fe_reviewer_ui -down-> fe_reviewer_container
+fe_reviewer_container -down-> fe_reviewer_socket
+fe_reviewer_socket -down-> ws_handler : **WS: followup:create**\n{items, createdAt}
+
+ws_handler -down-> reviewer_service : handle event
+
+reviewer_service -down-> rate_limiter : check rate
+rate_limiter -down-> counters : INCR / EXPIRE
+
+reviewer_service -down-> deduplicator : check duplicate
+deduplicator -down-> counters : SADD
+
+reviewer_service -down-> ai_adapter : generateQuestions
+ai_adapter -down-> openai_api : POST /chat/completions\nsystem prompt
+openai_api -up-> ai_adapter : questions text
+
+reviewer_service -down-> stream_client : persist
+stream_client -down-> stream_questions : XADD → $streamId
+
+reviewer_service -down-> producer : broadcast
+producer -down-> agent_message : PUBLISH {text, streamId}
+
+' ==============================================================
+' Realtime Delivery
+' ==============================================================
+agent_message -up-> consumer : SUBSCRIBE
+consumer -up-> participant_service
+participant_service -up-> ws_handler
+ws_handler -up-> fe_participant_socket : **agent:questions**
+fe_participant_socket -up-> fe_participant_container
+fe_participant_container -up-> fe_participant_chat_feed : render
+fe_participant_container -up-> fe_participant_speech : speak (queue)
+
+fe_participant_chat_feed -up-> participant : display
+fe_participant_speech -up-> participant : hear
+
+' ==============================================================
+' Reconnect & Replay
+' ==============================================================
+participant -down-> fe_participant_container : reconnect
+fe_participant_container -down-> fe_participant_socket : send lastStreamId
+fe_participant_socket -down-> ws_handler : request replay
+ws_handler -down-> agent_service
+agent_service -down-> stream_client : XREAD since $lastId
+stream_client -down-> stream_questions : XREAD …
+stream_questions -up-> stream_client
+stream_client -up-> agent_service
+agent_service -up-> ws_handler
+ws_handler -up-> fe_participant_socket : replay in order
+
+' ==============================================================
+' Misc
+' ==============================================================
+note right of server
+  GET /health → { ok: true }
+end note
+
+footer 3-Layer Architecture – %date()
+@enduml

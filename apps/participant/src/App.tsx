@@ -5,7 +5,7 @@ import ChatFeed from './components/ChatFeed';
 import ConnectionStatus from './components/ConnectionStatus';
 import ReconnectHandler from './components/ReconnectHandler';
 import './App.css';
-import type {AgentQuestions} from "../../../packages/shared/src";
+import type {AgentQuestions} from "shared";
 import {configs} from "./config.ts";
 
 function App() {

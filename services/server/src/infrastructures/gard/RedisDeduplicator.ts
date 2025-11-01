@@ -1,14 +1,10 @@
 import { Deduplicator } from "./Deduplicator";
 import { createClient, RedisClientType } from "redis";
-import { createHash } from "node:crypto";
 
 export interface DeduplicationOptions {
     ttlSec: number;
 }
 
-function hashKey(key: string): string {
-    return createHash("sha256").update(key).digest("hex");
-}
 
 export class RedisDeduplicator implements Deduplicator {
     private client: RedisClientType;
@@ -35,8 +31,7 @@ export class RedisDeduplicator implements Deduplicator {
         const pipeline = this.client.multi();
 
         for (const key of keyArray) {
-            const hashed = hashKey(key);
-            const rkey = `dedup:${hashed}`;
+            const rkey = `dedup:${key}`;
             pipeline.set(rkey, "1", { NX: true, EX: this.ttlSec });
         }
 

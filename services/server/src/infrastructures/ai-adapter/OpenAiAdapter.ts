@@ -5,11 +5,18 @@ export class OpenAiAdapter implements AiAdapter {
     private client: OpenAI;
     private readonly systemPrompt: string;
     private readonly model: string;
+    private readonly tokenLimit:number;
 
-    constructor(apiKey: string,model:string, systemPrompt: string ) {
+    constructor(
+        apiKey: string,
+        model:string,
+        systemPrompt: string ,
+        tokenLimit:number
+    ) {
         this.client = new OpenAI({ apiKey });
         this.systemPrompt = systemPrompt;
         this.model = model;
+        this.tokenLimit = tokenLimit;
     }
 
     async generate(prompt:string): Promise<GenerateResult> {
@@ -21,6 +28,7 @@ export class OpenAiAdapter implements AiAdapter {
                     { role: "user", content: prompt },
                 ],
                 temperature: 0.7,
+                max_completion_tokens: this.tokenLimit,
             });
             const text = response.choices[0].message?.content?.trim() ?? "";
             const parts= text
