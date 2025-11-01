@@ -4,16 +4,18 @@ import {AiAdapter, GenerateResult} from "./AiAdapter";
 export class OpenAiAdapter implements AiAdapter {
     private client: OpenAI;
     private readonly systemPrompt: string;
+    private readonly model: string;
 
-    constructor(apiKey: string, systemPrompt: string ) {
+    constructor(apiKey: string,model:string, systemPrompt: string ) {
         this.client = new OpenAI({ apiKey });
         this.systemPrompt = systemPrompt;
+        this.model = model;
     }
 
     async generate(prompt:string): Promise<GenerateResult> {
         try {
             const response = await this.client.chat.completions.create({
-                model: "gpt-3.5-turbo",
+                model: this.model,
                 messages: [
                     { role: "system", content: this.systemPrompt },
                     { role: "user", content: prompt },

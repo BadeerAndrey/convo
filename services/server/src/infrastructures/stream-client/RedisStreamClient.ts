@@ -1,5 +1,5 @@
-import { createClient, RedisClientType } from 'redis';
-import { StreamClient } from './StreamClient';
+import {createClient, RedisClientType} from 'redis';
+import {StreamClient} from './StreamClient';
 
 export class RedisStreamClient<T> implements StreamClient<T> {
     private client: RedisClientType;
@@ -20,19 +20,27 @@ export class RedisStreamClient<T> implements StreamClient<T> {
 
     async add(message: T): Promise<string> {
         await this.ensureConnected();
-        const  payload = {
-            data : JSON.stringify(message),
-        }
-        const id = await this.client.xAdd(this.streamKey, '*', payload);
-        return id;
+
+        const payload = { data: JSON.stringify(message) };
+        return await this.client.xAdd(
+            this.streamKey,
+            '*',
+            payload,
+            {
+                TRIM: {
+                    strategy: 'MAXLEN',
+                    threshold: 100,
+                },
+            }
+        );
     }
 
-    async read(lastId: string): Promise<{ id: string; message: T }[]> {
+
+    async read(lastId?: string): Promise<{ id: string; message: T }[]> {
         await this.ensureConnected();
 
         const result = await this.client.xRead(
-            [{ key: this.streamKey, id: lastId }],
-            { COUNT: 10 } // you can adjust or add BLOCK here if needed
+            [{ key: this.streamKey, id: lastId ??'0'}],
         );
 
         if (!result) return [];

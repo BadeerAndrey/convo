@@ -1,7 +1,7 @@
 import '@fastify/env';
 import {MessageProducer} from "../infrastructures/message-broker/MessageProducer";
 import type { Server } from 'socket.io';
-import {AgentQuestions, ClientToServerEvents, ServerToClientEvents} from "../packages/shared";
+import {AgentQuestions, ClientToServerEvents, ServerToClientEvents} from "../../../../packages/shared/src";
 import {MessageConsumer} from "../infrastructures/message-broker/MessageConsumer";
 import {StreamClient} from "../infrastructures/stream-client/StreamClient";
 import {AiAdapter} from "../infrastructures/ai-adapter/AiAdapter";
@@ -13,7 +13,8 @@ declare module 'fastify' {
         config: {
             REDIS_URL: string;
             OPENAI_API_KEY:string;
-            IS_TEST:boolean;
+            OPENAI_API_MODEL:string;
+            OPENAI_API_SYSTEM_PROMPT:string;
         };
 
         questionMessageProducer: MessageProducer<AgentQuestions[]>;

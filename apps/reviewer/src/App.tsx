@@ -5,14 +5,14 @@ import { StatusBar } from './components/StatusBar';
 import { useSocket } from './hooks/useSocket';
 import { normalizeItems } from './utils/normalize';
 import './App.css';
+import {configs} from "./config.ts";
 
-const SOCKET_URL = 'http://localhost:3000'; // ← change if needed
 
 function App() {
     const [transcript, setTranscript] = useState('');
     const [manual, setManual] = useState('');
 
-    const { emitItems, status,message } = useSocket(SOCKET_URL);
+    const { emitItems, status,message,connected } = useSocket(configs.apiURL);
 
     const send = useCallback(
         (raw: string) => {
@@ -28,7 +28,7 @@ function App() {
         <div className="app-container">
             <h1>Reviewer Input</h1>
 
-            <MicRecorder onTranscript={send} />
+            <MicRecorder onTranscript={send} disabled={!connected} />
 
             {transcript && (
                 <div className="transcript">
@@ -36,9 +36,10 @@ function App() {
                 </div>
             )}
 
-            <StatusBar status={status} message={message} />
+            <StatusBar status={status} message={message} connected={connected}/>
 
             <TextInput
+                disabled={!connected}
                 value={manual}
                 onChange={setManual}
                 onSend={() => {

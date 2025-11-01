@@ -1,4 +1,4 @@
-import {AgentQuestions} from "../packages/shared";
+import {AgentQuestions} from "shared";
 import {MessageConsumer} from "../infrastructures/message-broker/MessageConsumer";
 
 export class ParticipantService {

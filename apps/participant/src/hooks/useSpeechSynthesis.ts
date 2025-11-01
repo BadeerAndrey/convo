@@ -5,6 +5,7 @@ export const useSpeechSynthesis = () => {
     const queue = useRef<string[]>([]);
 
     const speak = (text: string) => {
+        console.log("before", speaking.current, text);
         if (speaking.current) {
             queue.current.push(text);
             return;
@@ -20,6 +21,15 @@ export const useSpeechSynthesis = () => {
             }
         };
 
+        utterance.onerror = (e) => {
+            console.error("speech error", e);
+            speaking.current = false;
+            queue.current = [];
+        }
+
+        speechSynthesis.onvoiceschanged = () => {
+            speechSynthesis.getVoices();
+        };
         speechSynthesis.speak(utterance);
     };
 

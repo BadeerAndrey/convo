@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import {RedisConsumer} from "../infrastructures/message-broker/RedisConsumer";
-import {AgentQuestions} from "../packages/shared";
+import {AgentQuestions} from "shared";
 
 export default fp(async (fastify) => {
     const { REDIS_URL } = fastify.config;   // <-- from .env

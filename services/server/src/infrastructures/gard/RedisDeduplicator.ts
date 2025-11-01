@@ -26,7 +26,8 @@ export class RedisDeduplicator implements Deduplicator {
     }
 
     async isUnique(keys: string | string[]): Promise<boolean> {
-        const keyArray = Array.isArray(keys) ? keys : [keys];
+        let keyArray = Array.isArray(keys) ? keys : [keys];
+        keyArray = keyArray.filter(x=>x && x.length > 0);
         if (keyArray.length === 0) return true;
 
         await this.ensureConnected();

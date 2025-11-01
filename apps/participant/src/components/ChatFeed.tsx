@@ -1,5 +1,5 @@
 import MessageItem from './MessageItem';
-import type {AgentQuestions} from "../../../../packages/shared.ts";
+import type {AgentQuestions} from "../../../../packages/shared/src";
 
 type Props = {
     messages: AgentQuestions[];

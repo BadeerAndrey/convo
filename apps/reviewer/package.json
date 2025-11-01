@@ -4,12 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port=5173",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "shared": "workspace:*",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "socket.io-client": "^4.8.1"

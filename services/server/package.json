@@ -9,9 +9,10 @@
   "scripts": {
     "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
     "start": "npm run build:ts && fastify start -l info dist/app.js",
+    "build": "tsc && npm run copy-public",
     "build:ts": "tsc && npm run copy-public",
     "watch:ts": "tsc -w && npm run copy-public",
-    "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
+    "dev": "npm run build:ts && concurrently \"npm:watch:ts\" \"npm:dev:start\"",
     "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -P dist/app.js",
     "copy-public": "cp -R src/public dist"
   },
@@ -19,6 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "shared": "workspace:*",
     "@fastify/autoload": "^6.0.0",
     "@fastify/env": "^5.0.3",
     "@fastify/sensible": "^6.0.0",

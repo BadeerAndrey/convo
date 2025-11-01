@@ -2,10 +2,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import './MicRecorder.css';
 
 type Props = {
+    disabled: boolean,
     onTranscript: (text: string) => void;
 };
 
-export const MicRecorder: React.FC<Props> = ({ onTranscript }) => {
+export const MicRecorder: React.FC<Props> = ({ onTranscript,disabled }) => {
     const [isRecording, setIsRecording] = useState(false);
     const recognitionRef = useRef<any>(null);
 
@@ -55,6 +56,7 @@ export const MicRecorder: React.FC<Props> = ({ onTranscript }) => {
                 onMouseDown={start}
                 onMouseUp={stop}
                 onMouseLeave={stop}
+                disabled={disabled}
             >
                 <svg
                     width="48"

@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify'
 import {ReviewerService} from "../services/reviewerService";
-import {ClientToServerEvents, ServerToClientEvents} from "../packages/shared";
+import {ClientToServerEvents, ServerToClientEvents} from "../../../../packages/shared/src";
 import {Socket } from 'socket.io';
 import {ParticipantService} from "../services/participantService";
 import {AgentService} from "../services/agentService";

@@ -1,0 +1,19 @@
+{
+  "name": "convo",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev:reviewer": "pnpm --filter reviewer dev",
+    "dev:participant": "pnpm --filter participant dev",
+    "dev:server": "pnpm --filter server dev",
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "start": "pnpm dev"
+  }
+}

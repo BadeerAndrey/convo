@@ -1,4 +1,4 @@
-import type {AgentQuestions} from "../../../../packages/shared.ts";
+import type {AgentQuestions} from "../../../../packages/shared/src";
 
 type Props = {
     message: AgentQuestions;

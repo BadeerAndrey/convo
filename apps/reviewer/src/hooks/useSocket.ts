@@ -1,6 +1,6 @@
 import {useEffect, useRef, useCallback, useState} from 'react';
 import {io, Socket} from 'socket.io-client';
-import type {ClientToServerEvents, ServerToClientEvents} from "../../../../packages/shared.ts";
+import type {ClientToServerEvents, ServerToClientEvents} from "shared";
 
 type Status = 'idle' | 'sending' | 'acknowledged' | 'rejected';
 
@@ -11,18 +11,34 @@ export const useSocket = (
     emitItems: (items: string[]) => void;
     status: Status;
     message: string;
+    connected: boolean;
     setStatus: React.Dispatch<React.SetStateAction<Status>>;
 } => {
     const socketRef = useRef<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null);
     const [status, setStatus] = useState<Status>('idle');
     const [message, setMessage] = useState<string>('');
+    const [connected, setConnected] = useState(false);
 
     useEffect(() => {
-        const socket = io(url, {transports: ['websocket']});
+        const socket = io(
+            url,
+            {
+                transports: ['websocket'],
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 2000,
+            },
+        );
         console.log('created a new socket', socket);
 
-        socket.on('connect', () => console.log('Socket.IO connected', socket.id));
-        socket.on('connect_error', (err) => console.error('Socket.IO error', err));
+        socket.on('connect', () => {
+            console.log('Socket.IO connected', socket.id)
+            setConnected(true);
+        });
+        socket.on('connect_error', (err) => {
+            setConnected(false);
+            console.error('Socket.IO error', err)
+        });
         socketRef.current = socket;
         return () => {
             socket.disconnect();
@@ -50,5 +66,5 @@ export const useSocket = (
         []
     );
 
-    return {socket: socketRef.current, emitItems, status,message, setStatus};
+    return {socket: socketRef.current, emitItems, connected: connected, status,message, setStatus};
 };
