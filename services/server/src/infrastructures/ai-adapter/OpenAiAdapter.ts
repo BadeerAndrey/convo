@@ -27,7 +27,6 @@ export class OpenAiAdapter implements AiAdapter {
                     { role: "system", content: this.systemPrompt },
                     { role: "user", content: prompt },
                 ],
-                temperature: 0.7,
                 max_completion_tokens: this.tokenLimit,
             });
             const text = response.choices[0].message?.content?.trim() ?? "";
